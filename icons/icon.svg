@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="geometricPrecision">
-  <!-- Bottom coin (slate) -->
-  <path d="M 4 25 L 4 28.4 A 12 3.2 0 0 0 28 28.4 L 28 25 Z" fill="#163240"/>
-  <ellipse cx="16" cy="25" rx="12" ry="3.2" fill="#1F4654"/>
+  <!-- Bottom coin (slate) - cy=23.2, rx=14, ry=3.4, bh=3.6 -->
+  <path d="M 2 23.2 L 2 26.8 A 14 3.4 0 0 0 30 26.8 L 30 23.2 Z" fill="#163240"/>
+  <ellipse cx="16" cy="23.2" rx="14" ry="3.4" fill="#1F4654"/>
 
-  <!-- Middle coin (lighter slate) -->
-  <path d="M 6 18.5 L 6 21.5 A 10 2.7 0 0 0 26 21.5 L 26 18.5 Z" fill="#426F7D"/>
-  <ellipse cx="16" cy="18.5" rx="10" ry="2.7" fill="#5C9AAE"/>
+  <!-- Middle coin (lighter slate) - cy=13.2, rx=11.5, ry=2.9, bh=3.2 -->
+  <path d="M 4.5 13.2 L 4.5 16.4 A 11.5 2.9 0 0 0 27.5 16.4 L 27.5 13.2 Z" fill="#426F7D"/>
+  <ellipse cx="16" cy="13.2" rx="11.5" ry="2.9" fill="#5C9AAE"/>
 
-  <!-- Top coin (amber) -->
-  <path d="M 8 12 L 8 14.6 A 8 2.2 0 0 0 24 14.6 L 24 12 Z" fill="#A47535"/>
-  <ellipse cx="16" cy="12" rx="8" ry="2.2" fill="#E4A24A"/>
+  <!-- Top coin (amber) - cy=4.4, rx=9, ry=2.4, bh=3 -->
+  <path d="M 7 4.4 L 7 7.4 A 9 2.4 0 0 0 25 7.4 L 25 4.4 Z" fill="#A47535"/>
+  <ellipse cx="16" cy="4.4" rx="9" ry="2.4" fill="#E4A24A"/>
 </svg>
