@@ -7,41 +7,90 @@ function fmtRelative(ts) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-function renderClaude(u) {
-  const card = document.getElementById("claude-card");
-  const status = document.getElementById("claude-status");
-  const meta = document.getElementById("claude-meta");
-  const updated = document.getElementById("claude-updated");
+function fmtUntil(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const diff = d.getTime() - Date.now();
+  if (diff <= 0) return "now";
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  const rm = m % 60;
+  if (h < 24) return rm ? `${h}h ${rm}m` : `${h}h`;
+  const dDays = Math.floor(h / 24);
+  const rh = h % 24;
+  return rh ? `${dDays}d ${rh}h` : `${dDays}d`;
+}
 
-  if (!u || (!u.messagesRemaining && !u.resetsAt && !u.plan && !u.model)) {
-    status.innerHTML = `<span class="muted">No usage info detected yet</span>`;
-    meta.innerHTML = `<span class="hint">Open claude.ai to start tracking. Claude only shows usage data when you're approaching a limit.</span>`;
-    updated.textContent = "";
+function bar(pct, color) {
+  const p = Math.max(0, Math.min(100, pct ?? 0));
+  return `<div class="bar"><span style="width:${p}%;background:${color}"></span></div>`;
+}
+
+function renderWindows(usage) {
+  const list = document.getElementById("windows");
+  if (!usage || !usage.windows || usage.windows.length === 0) {
+    list.innerHTML = "";
+    return false;
+  }
+  const colorFor = (label) => {
+    const l = (label || "").toLowerCase();
+    if (l.includes("5") || l.includes("hour")) return "var(--tk-accent)";
+    if (l.includes("7") || l.includes("day") || l.includes("week")) return "var(--tk-primary-soft)";
+    return "var(--tk-paper)";
+  };
+  list.innerHTML = usage.windows
+    .map((w) => {
+      const pct = typeof w.remainingPct === "number" ? w.remainingPct : null;
+      const reset = fmtUntil(w.resetsAt);
+      return `
+        <div class="window">
+          <div class="row1">
+            <span class="wlabel">${w.label}</span>
+            <span class="wpct mono">${pct !== null ? pct + "%" : "—"}</span>
+          </div>
+          ${bar(pct, colorFor(w.label))}
+          <div class="row2 mono">${reset ? `resets in ${reset}` : "&nbsp;"}</div>
+        </div>
+      `;
+    })
+    .join("");
+  return true;
+}
+
+function renderEndpoints(endpoints) {
+  const el = document.getElementById("endpoints");
+  if (!endpoints || endpoints.length === 0) {
+    el.innerHTML = `<div class="hint">No Claude API calls captured yet. Open or interact with claude.ai to populate.</div>`;
     return;
   }
-
-  let primary = "";
-  if (u.state === "limit_reached") {
-    primary = `<span class="value warn">Limit reached</span>`;
-  } else if (typeof u.messagesRemaining === "number") {
-    primary = `<span class="value"><span class="num">${u.messagesRemaining}</span><span class="unit"> msgs left</span></span>`;
-  } else {
-    primary = `<span class="muted">Active</span>`;
-  }
-  status.innerHTML = primary;
-
-  const bits = [];
-  if (u.plan) bits.push(`<span class="tag">${u.plan}</span>`);
-  if (u.model) bits.push(`<span class="tag mono">${u.model}</span>`);
-  if (u.resetsAt) bits.push(`<span class="reset">resets ${u.resetsAt}</span>`);
-  meta.innerHTML = bits.join("");
-
-  updated.textContent = `Updated ${fmtRelative(u.updatedAt)}`;
+  el.innerHTML = endpoints
+    .slice(0, 4)
+    .map(
+      (e) => `
+        <div class="endpoint">
+          <div class="ep-url mono">${e.hasWindows ? "✓ " : "  "}${e.url.replace(/^https?:\/\/[^/]+/, "")}</div>
+          <div class="ep-meta mono">${fmtRelative(e.seenAt)}</div>
+        </div>
+      `
+    )
+    .join("");
 }
 
 async function render() {
-  const { usage = {} } = await chrome.storage.local.get("usage");
-  renderClaude(usage.claude);
+  const { usage = {}, endpoints = [] } = await chrome.storage.local.get(["usage", "endpoints"]);
+  const claude = usage.claude;
+
+  const empty = document.getElementById("empty");
+  const had = renderWindows(claude);
+  empty.style.display = had ? "none" : "block";
+
+  document.getElementById("updated").textContent = claude?.updatedAt
+    ? `Updated ${fmtRelative(claude.updatedAt)}`
+    : "";
+
+  renderEndpoints(endpoints);
 }
 
 document.getElementById("open-claude").addEventListener("click", () => {
@@ -49,13 +98,18 @@ document.getElementById("open-claude").addEventListener("click", () => {
 });
 
 document.getElementById("reset").addEventListener("click", async () => {
-  await chrome.storage.local.set({ usage: {} });
+  await chrome.storage.local.set({ usage: {}, endpoints: [] });
   render();
+});
+
+document.getElementById("toggle-debug").addEventListener("click", (e) => {
+  const wrap = document.getElementById("debug-wrap");
+  const isOpen = wrap.classList.toggle("open");
+  e.target.textContent = isOpen ? "Hide debug" : "Show debug";
 });
 
 render();
 
-// Live update if the background writes new data while popup is open.
 chrome.storage.onChanged.addListener((changes) => {
-  if (changes.usage) render();
+  if (changes.usage || changes.endpoints) render();
 });

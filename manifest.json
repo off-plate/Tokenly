@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Tokenly",
-  "version": "0.0.3",
-  "description": "See your Claude.ai usage at a glance. More AI tools coming.",
+  "version": "0.0.4",
+  "description": "See your Claude.ai rate limits at a glance. More AI tools coming.",
   "action": {
     "default_popup": "src/popup.html",
     "default_title": "Tokenly"
@@ -17,8 +17,14 @@
   "content_scripts": [
     {
       "matches": ["https://claude.ai/*"],
+      "js": ["src/inject.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://claude.ai/*"],
       "js": ["src/content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_start"
     }
   ],
   "icons": {

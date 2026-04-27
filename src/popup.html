@@ -22,20 +22,30 @@
       </div>
     </header>
 
-    <section class="card" id="claude-card">
+    <section class="card">
       <div class="card-head">
-        <div class="tool-name">Claude</div>
-        <button class="ghost" id="open-claude" title="Open claude.ai">Open</button>
+        <div class="tool-name">Claude · Rate Limits</div>
+        <button class="ghost" id="open-claude">Open</button>
       </div>
-      <div class="status" id="claude-status"></div>
-      <div class="meta" id="claude-meta"></div>
-      <div class="updated mono" id="claude-updated"></div>
+
+      <div id="windows"></div>
+
+      <div id="empty" class="hint">
+        No data yet. Open claude.ai and send a message — Tokenly captures usage from the API calls Claude's web app makes. Data appears within a few seconds.
+      </div>
+
+      <div class="updated mono" id="updated"></div>
     </section>
 
-    <footer>
-      <span class="footnote">Tokenly reads what Claude shows you. No login required.</span>
-      <button id="reset" class="ghost">Reset</button>
-    </footer>
+    <div class="actions">
+      <button class="link" id="toggle-debug">Show debug</button>
+      <button class="ghost" id="reset">Reset</button>
+    </div>
+
+    <section id="debug-wrap" class="debug">
+      <div class="debug-title mono">Captured API endpoints</div>
+      <div id="endpoints"></div>
+    </section>
 
     <script src="popup.js"></script>
   </body>

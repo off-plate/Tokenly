@@ -1,96 +1,117 @@
-// Tokenly content script — Claude.ai usage scraper.
-//
-// Strategy: Claude only reveals usage info when you're approaching or hitting
-// a limit (text like "X messages remaining until Y" or "You've reached the
-// usage limit"). We can't query a usage API. So we watch the DOM for those
-// signals, parse them, and store what we find. When Claude doesn't say
-// anything, we don't make up numbers.
+// Tokenly content script — isolated world.
+// Receives api_response messages from inject.js (main world) and tries to
+// extract rate-limit data into a normalized shape we can display.
 
 const TOOL = "claude";
 
-const PATTERNS = {
-  // "5 messages remaining until 9 PM"
-  messagesRemaining: /(\d+)\s+messages?\s+remaining\s+until\s+([0-9]{1,2}(?::[0-9]{2})?\s*(?:AM|PM)?)/i,
-  // "You've reached the usage limit ... try again at 9 PM"
-  limitReached: /reached\s+(?:the\s+)?(?:usage|message)\s+limit.*?(?:try again|resets|at)\s+([0-9]{1,2}(?::[0-9]{2})?\s*(?:AM|PM)?)/i,
-  // "Usage limit resets at 9 PM"
-  resetsAt: /(?:limit\s+resets?|usage\s+resets?|resets?)\s+at\s+([0-9]{1,2}(?::[0-9]{2})?\s*(?:AM|PM)?)/i,
-  proPlan: /\bclaude\s+pro\b/i,
-  maxPlan: /\bclaude\s+max\b/i,
-  freePlan: /\bfree\s+plan\b/i,
-};
+// --- Normalizer ---
+//
+// Anthropic does not publish this schema, so we look for several shapes the
+// payload might take. We extract whatever we find. Unknown fields are kept
+// under `raw` so we can iterate without losing data.
 
-function detectPlan(text) {
-  if (PATTERNS.maxPlan.test(text)) return "Max";
-  if (PATTERNS.proPlan.test(text)) return "Pro";
-  if (PATTERNS.freePlan.test(text)) return "Free";
-  return null;
-}
-
-function detectModel() {
-  // Claude.ai shows the model name in the model picker. Selectors are not
-  // stable, so we cast a wide net: look for elements whose text contains
-  // "Claude" + a model name like "Sonnet 4.5", "Opus 4", "Haiku".
-  const candidates = document.querySelectorAll(
-    'button, [role="button"], [aria-label*="model" i], [data-testid*="model" i]'
+function pickResetISO(o) {
+  return (
+    o?.resets_at ||
+    o?.resetsAt ||
+    o?.reset_at ||
+    o?.resetAt ||
+    o?.reset ||
+    null
   );
-  const re = /Claude\s+(Opus|Sonnet|Haiku)\s*([\d.]+)?/i;
-  for (const el of candidates) {
-    const t = (el.textContent || "").trim();
-    const m = t.match(re);
-    if (m) return m[0];
+}
+
+function pickRemainingPct(o) {
+  if (typeof o?.remaining_percentage === "number") return o.remaining_percentage;
+  if (typeof o?.remainingPercentage === "number") return o.remainingPercentage;
+  if (typeof o?.percent_remaining === "number") return o.percent_remaining;
+  if (typeof o?.percentRemaining === "number") return o.percentRemaining;
+  if (typeof o?.remaining === "number" && typeof o?.limit === "number" && o.limit > 0) {
+    return Math.round((o.remaining / o.limit) * 100);
   }
   return null;
 }
 
-function scan() {
-  const body = document.body?.innerText || "";
-  const result = { tool: TOOL, scannedAt: Date.now(), url: location.href };
-  let m;
+function normalize(data) {
+  // Try to find arrays/objects that look like rate-limit windows.
+  // Common patterns:
+  //   { rate_limits: [{ window: "5h", remaining_percentage: 18, resets_at: "..." }, ...] }
+  //   { five_hour: {...}, seven_day: {...} }
+  //   { usage: { fiveHour: ..., sevenDay: ... } }
+  const out = { tool: TOOL, scannedAt: Date.now(), windows: [] };
 
-  if ((m = body.match(PATTERNS.messagesRemaining))) {
-    result.messagesRemaining = parseInt(m[1], 10);
-    result.resetsAt = m[2].trim();
-    result.state = "approaching_limit";
-  } else if ((m = body.match(PATTERNS.limitReached))) {
-    result.messagesRemaining = 0;
-    result.resetsAt = m[1].trim();
-    result.state = "limit_reached";
-  } else if ((m = body.match(PATTERNS.resetsAt))) {
-    result.resetsAt = m[1].trim();
+  const candidateArrays = [
+    data?.rate_limits,
+    data?.rateLimits,
+    data?.usage?.rate_limits,
+    data?.usage?.windows,
+  ].filter(Array.isArray);
+
+  for (const arr of candidateArrays) {
+    for (const w of arr) {
+      out.windows.push({
+        label: w.window || w.name || w.type || w.label || "unknown",
+        remainingPct: pickRemainingPct(w),
+        resetsAt: pickResetISO(w),
+        raw: w,
+      });
+    }
   }
 
-  result.plan = detectPlan(body);
-  result.model = detectModel();
-
-  // Only report if at least one meaningful signal exists, so we don't blow
-  // away a useful prior reading with an empty one.
-  const meaningful =
-    result.messagesRemaining !== undefined ||
-    result.resetsAt ||
-    result.plan ||
-    result.model;
-
-  if (meaningful) {
-    chrome.runtime.sendMessage({ type: "usage", payload: result });
+  // Object-shape fallback: keys like five_hour / seven_day / sonnet
+  const objShapes = [data, data?.usage, data?.rate_limits, data?.rateLimits];
+  for (const o of objShapes) {
+    if (!o || typeof o !== "object" || Array.isArray(o)) continue;
+    for (const [k, v] of Object.entries(o)) {
+      if (!v || typeof v !== "object" || Array.isArray(v)) continue;
+      const looks =
+        pickRemainingPct(v) !== null ||
+        pickResetISO(v) ||
+        typeof v?.remaining === "number";
+      if (looks) {
+        out.windows.push({
+          label: k,
+          remainingPct: pickRemainingPct(v),
+          resetsAt: pickResetISO(v),
+          raw: v,
+        });
+      }
+    }
   }
+
+  // Plan / model hints anywhere in the blob
+  const blob = JSON.stringify(data).toLowerCase();
+  if (blob.includes("\"max\"") || /\bmax\b/.test(blob)) out.plan = out.plan || null;
+  if (data?.plan) out.plan = data.plan;
+  if (data?.subscription?.plan) out.plan = data.subscription.plan;
+
+  return out.windows.length > 0 ? out : null;
 }
 
-let scanQueued = false;
-function scheduleScan() {
-  if (scanQueued) return;
-  scanQueued = true;
-  setTimeout(() => {
-    scanQueued = false;
-    try { scan(); } catch (e) { /* swallow */ }
-  }, 800);
-}
+window.addEventListener("message", (ev) => {
+  if (ev.source !== window) return;
+  if (ev.data?.source !== "tokenly") return;
+  if (ev.data.type !== "api_response") return;
 
-scheduleScan();
+  const url = ev.data.url;
+  const data = ev.data.data;
+  const normalized = normalize(data);
 
-const observer = new MutationObserver(scheduleScan);
-observer.observe(document.documentElement, {
-  subtree: true,
-  childList: true,
-  characterData: true,
+  // Always report what we saw, even unnormalized — popup shows last endpoint
+  // for discovery/debugging.
+  chrome.runtime.sendMessage({
+    type: "claude_api",
+    url,
+    normalized, // may be null if we couldn't extract windows
+    rawSample: !normalized ? truncate(data) : undefined,
+  });
 });
+
+function truncate(obj) {
+  try {
+    const s = JSON.stringify(obj);
+    return s.length > 4000 ? s.slice(0, 4000) + "..." : s;
+  } catch {
+    return null;
+  }
+}

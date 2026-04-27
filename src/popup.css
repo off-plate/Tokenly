@@ -14,7 +14,7 @@
 
 body {
   font-family: var(--tk-font);
-  width: 320px;
+  width: 340px;
   padding: 16px;
   background: var(--tk-ink);
   color: var(--tk-paper);
@@ -22,12 +22,7 @@ body {
 
 header { margin-bottom: 14px; }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
+.brand { display: flex; align-items: center; gap: 10px; }
 .brand .mark { display: block; }
 
 h1 {
@@ -43,87 +38,69 @@ h1 {
   border: 1px solid #22282d;
   border-radius: 10px;
   padding: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .tool-name {
   font-family: var(--tk-font);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   color: #cdd2d6;
+  text-transform: uppercase;
 }
 
-.status {
-  margin-bottom: 8px;
-  min-height: 26px;
+.window {
+  margin-bottom: 14px;
+}
+.window:last-child { margin-bottom: 0; }
+
+.row1 {
   display: flex;
+  justify-content: space-between;
   align-items: baseline;
-  gap: 6px;
+  margin-bottom: 6px;
 }
-
-.value {
-  display: inline-flex;
-  align-items: baseline;
-}
-.value .num {
-  font-family: var(--tk-mono);
+.wlabel {
+  font-family: var(--tk-font);
+  font-size: 13px;
   font-weight: 500;
-  font-size: 24px;
+  color: var(--tk-paper);
+  text-transform: capitalize;
+}
+.wpct {
+  font-family: var(--tk-mono);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--tk-paper);
   font-feature-settings: "tnum" 1;
-  line-height: 1;
 }
-.value .unit {
-  font-family: var(--tk-font);
-  font-weight: 500;
-  font-size: 12px;
-  color: var(--tk-mute);
-  margin-left: 6px;
-}
-.value.warn .num { color: var(--tk-accent); }
-
-.muted {
-  font-family: var(--tk-font);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--tk-mute);
-}
-
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-  min-height: 18px;
-}
-
-.tag {
-  display: inline-block;
-  font-family: var(--tk-font);
-  font-size: 10px;
-  font-weight: 500;
-  padding: 3px 7px;
-  background: #22282d;
-  color: #cdd2d6;
-  border-radius: 4px;
-  letter-spacing: 0.02em;
-}
-.tag.mono { font-family: var(--tk-mono); }
-
-.reset {
+.row2 {
   font-family: var(--tk-mono);
   font-size: 10px;
-  color: var(--tk-accent);
+  color: var(--tk-mute);
+  margin-top: 5px;
   letter-spacing: 0.04em;
-  align-self: center;
+}
+
+.bar {
+  height: 8px;
+  background: #22282d;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 220ms ease;
 }
 
 .hint {
@@ -131,7 +108,7 @@ h1 {
   font-size: 11px;
   font-weight: 400;
   color: var(--tk-mute);
-  line-height: 1.45;
+  line-height: 1.5;
   display: block;
 }
 
@@ -141,22 +118,30 @@ h1 {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #5a5e62;
+  margin-top: 10px;
 }
 
-footer {
+.actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
   margin-top: 4px;
+  margin-bottom: 4px;
 }
 
-.footnote {
-  font-family: var(--tk-font);
+.link {
+  font-family: var(--tk-mono);
   font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: none;
+  border: none;
   color: var(--tk-mute);
-  line-height: 1.4;
+  cursor: pointer;
+  padding: 4px 0;
 }
+.link:hover { color: var(--tk-accent); }
 
 button.ghost {
   font-family: var(--tk-mono);
@@ -173,8 +158,46 @@ button.ghost {
   transition: color 120ms ease, border-color 120ms ease;
   white-space: nowrap;
 }
-
 button.ghost:hover {
   color: var(--tk-accent);
   border-color: var(--tk-accent);
+}
+
+.debug {
+  display: none;
+  background: #15191c;
+  border: 1px solid #22282d;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 6px;
+}
+.debug.open { display: block; }
+
+.debug-title {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tk-mute);
+  margin-bottom: 8px;
+}
+
+.endpoint {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #1d2226;
+}
+.endpoint:last-child { border-bottom: none; }
+.ep-url {
+  font-size: 10px;
+  color: #cdd2d6;
+  word-break: break-all;
+  flex: 1;
+}
+.ep-meta {
+  font-size: 9px;
+  color: var(--tk-mute);
+  white-space: nowrap;
 }

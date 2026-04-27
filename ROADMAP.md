@@ -6,9 +6,10 @@ _Last updated: 2026-04-27_
 
 - [x] Manifest V3 scaffold
 - [x] Brand identity applied: 3-coin logo, slate/amber palette, Geist + Geist Mono typography
-- [x] Replace visit-counter stub with real Claude.ai usage scraper (DOM-based)
-- [ ] Verify scraper picks up real "X messages remaining" / "limit reached" signals when they appear on claude.ai
-- [ ] Tune regex patterns based on actual Claude UI strings (current patterns are best-guess)
+- [x] Replace visit-counter stub with real Claude.ai usage scraper (DOM-based) — superseded
+- [x] Switch to API interception approach (v0.0.4): inject script monkey-patches fetch/XHR in page world, captures rate-limit responses
+- [ ] Identify the exact Claude API endpoint serving rate limits (use the popup's debug view to find it)
+- [ ] Once endpoint is known, refine the normalizer to map exact field names to UI
 
 ## Next (v0.1 — actually useful)
 
