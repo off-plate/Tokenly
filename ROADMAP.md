@@ -8,6 +8,7 @@ _Last updated: 2026-04-27_
 - [x] Page-visit counter for chatgpt.com and claude.ai
 - [x] Popup UI showing counts
 - [x] Placeholder icons (16/48/128)
+- [x] Brand identity applied: 3-coin logo, slate/amber palette, Geist + Geist Mono typography
 - [ ] Load extension locally and verify everything works end-to-end
 
 ## Next (v0.1 — actually useful)

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="geometricPrecision">
+  <!-- Bottom coin (slate) - simplified 2-coin stack for 16px -->
+  <path d="M 1 11 L 1 13 A 7 1.6 0 0 0 15 13 L 15 11 Z" fill="#163240"/>
+  <ellipse cx="8" cy="11" rx="7" ry="1.6" fill="#1F4654"/>
+
+  <!-- Top coin (amber) -->
+  <path d="M 2 5 L 2 7 A 6 1.4 0 0 0 14 7 L 14 5 Z" fill="#A47535"/>
+  <ellipse cx="8" cy="5" rx="6" ry="1.4" fill="#E4A24A"/>
+</svg>

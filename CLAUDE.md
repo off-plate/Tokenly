@@ -4,6 +4,31 @@ Chrome extension that tracks AI tool usage across multiple platforms (ChatGPT, C
 
 ---
 
+## Brand
+
+Calm, analytical, software-tool feel. Linear / Raycast / Arc lineage. No gradients, no glows, no purple-AI cliche.
+
+### Colors (CSS custom properties)
+| Var | Hex | Role |
+|---|---|---|
+| `--tk-primary` | `#1F4654` | Deep slate-cyan, primary brand, bottom coin |
+| `--tk-primary-soft` | `#4E8A9D` | Lighter mid-step, middle coin |
+| `--tk-accent` | `#E4A24A` | Warm amber, active state, top coin |
+| `--tk-ink` | `#14181B` | Near-black, dark neutral |
+| `--tk-paper` | `#F4F2EE` | Warm near-white, light neutral |
+| `--tk-mute` | `#8A8F94` | Mid neutral |
+
+### Typography
+- Wordmark: **Geist 600**, letter-spacing -0.018em
+- Body / labels: **Geist 400/500**
+- Numbers and meta: **Geist Mono 500**, with `font-feature-settings: "tnum" 1` for tabular figures
+- Font import: `https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@500&display=swap`
+
+### Logo
+Three stacked tokens in 3/4 isometric perspective. Bottom = primary slate, middle = lighter slate, top = amber (the active tool). Each coin = top lid ellipse + side band shaded ~28% darker than the lid. No rims at small sizes. At 16px, simplifies to two coins (slate + amber). Master SVG: `icons/icon.svg`. 16px variant: `icons/icon-16.svg`.
+
+---
+
 ## Stack
 
 - Chrome Extension Manifest V3
