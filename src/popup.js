@@ -1,4 +1,4 @@
-function fmtRelative(ts) {
+function fmtRel(ts) {
   if (!ts) return "never";
   const s = Math.floor((Date.now() - ts) / 1000);
   if (s < 5) return "just now";
@@ -41,14 +41,13 @@ function renderWindows(usage) {
     .map((w) => {
       const pct = typeof w.remainingPct === "number" ? w.remainingPct : null;
       const reset = fmtUntil(w.resetsAt);
-      const fill = pct ?? 0;
       return `
         <div class="window">
           <div class="row1">
             <span class="wlabel">${w.label}</span>
             <span class="wpct mono">${pct !== null ? pct + "%" : "—"}</span>
           </div>
-          <div class="bar"><span style="width:${fill}%;background:${colorFor(w.key)}"></span></div>
+          <div class="bar"><span style="width:${pct ?? 0}%;background:${colorFor(w.key)}"></span></div>
           <div class="row2 mono">${reset ? `resets in ${reset}` : "&nbsp;"}</div>
         </div>
       `;
@@ -57,41 +56,59 @@ function renderWindows(usage) {
   return true;
 }
 
-async function render() {
-  const data = await chrome.storage.local.get([
-    "claude.usage",
-    "claude.error",
-    "claude.lastOk",
-  ]);
-  const usage = data["claude.usage"];
-  const error = data["claude.error"];
-  const lastOk = data["claude.lastOk"];
-
-  const had = renderWindows(usage);
+function renderState({ usage, error, lastOk, loading }) {
   const empty = document.getElementById("empty");
-  const errBox = document.getElementById("error");
+  const errorBox = document.getElementById("error");
+  const had = renderWindows(usage);
 
   if (had) {
     empty.style.display = "none";
   } else {
     empty.style.display = "block";
-    empty.innerHTML = error
-      ? `Couldn't fetch usage. <span class="mono">${error.msg}</span>. Make sure you're logged in to claude.ai.`
-      : "Loading… open claude.ai once to make sure you're logged in.";
+    if (loading) {
+      empty.textContent = "Fetching usage from claude.ai…";
+    } else if (error?.msg === "NOT_LOGGED_IN") {
+      empty.innerHTML = `You're not logged in to claude.ai. <a href="#" id="open-link">Open Claude</a> and log in, then come back.`;
+      const openLink = document.getElementById("open-link");
+      if (openLink) {
+        openLink.addEventListener("click", (e) => {
+          e.preventDefault();
+          chrome.tabs.create({ url: "https://claude.ai" });
+        });
+      }
+    } else if (error) {
+      empty.innerHTML = `Couldn't fetch usage. <span class="mono">${error.msg}</span>`;
+    } else {
+      empty.textContent = "Loading…";
+    }
   }
 
-  if (error && !had) {
-    errBox.style.display = "none";
-  } else if (error) {
-    errBox.style.display = "block";
-    errBox.textContent = `Last fetch failed: ${error.msg}`;
-  } else {
-    errBox.style.display = "none";
-  }
+  errorBox.style.display = error && had ? "block" : "none";
+  if (error && had) errorBox.textContent = `Last fetch failed: ${error.msg}`;
 
-  document.getElementById("updated").textContent = lastOk
-    ? `Updated ${fmtRelative(lastOk)}`
-    : "";
+  document.getElementById("updated").textContent = lastOk ? `Updated ${fmtRel(lastOk)}` : "";
+
+  const v = chrome.runtime.getManifest().version;
+  document.getElementById("version").textContent = `v${v}`;
+}
+
+async function load(force) {
+  // Show stored data immediately, then fetch fresh in background
+  const stored = await chrome.storage.local.get(["usage", "error", "lastOk"]);
+  renderState({ ...stored, loading: !stored.usage });
+
+  // Ask background for fresh data
+  try {
+    const res = await chrome.runtime.sendMessage({ type: "GET_USAGE", force });
+    const fresh = await chrome.storage.local.get(["usage", "error", "lastOk"]);
+    renderState(fresh);
+    if (!res?.ok && !fresh.usage) {
+      renderState({ ...fresh, error: { msg: res?.error || "FETCH_FAILED" } });
+    }
+  } catch (e) {
+    const fresh = await chrome.storage.local.get(["usage", "error", "lastOk"]);
+    renderState({ ...fresh, error: { msg: e.message || String(e) } });
+  }
 }
 
 document.getElementById("open-claude").addEventListener("click", () => {
@@ -102,11 +119,14 @@ document.getElementById("refresh").addEventListener("click", async () => {
   const btn = document.getElementById("refresh");
   btn.disabled = true;
   btn.textContent = "…";
-  await chrome.runtime.sendMessage({ type: "refresh" });
+  await load(true);
   btn.disabled = false;
   btn.textContent = "Refresh";
 });
 
-render();
+load(false);
 
-chrome.storage.onChanged.addListener(() => render());
+chrome.storage.onChanged.addListener(async () => {
+  const fresh = await chrome.storage.local.get(["usage", "error", "lastOk"]);
+  renderState(fresh);
+});

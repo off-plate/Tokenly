@@ -23,6 +23,14 @@ body {
 header { margin-bottom: 14px; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand .mark { display: block; }
+.version {
+  margin-left: auto;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5a5e62;
+  align-self: center;
+}
 
 h1 {
   font-family: var(--tk-font);
