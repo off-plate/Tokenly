@@ -5,19 +5,17 @@ _Last updated: 2026-04-27_
 ## Now (current focus)
 
 - [x] Manifest V3 scaffold
-- [x] Page-visit counter for chatgpt.com and claude.ai
-- [x] Popup UI showing counts
-- [x] Placeholder icons (16/48/128)
 - [x] Brand identity applied: 3-coin logo, slate/amber palette, Geist + Geist Mono typography
-- [ ] Load extension locally and verify everything works end-to-end
+- [x] Replace visit-counter stub with real Claude.ai usage scraper (DOM-based)
+- [ ] Verify scraper picks up real "X messages remaining" / "limit reached" signals when they appear on claude.ai
+- [ ] Tune regex patterns based on actual Claude UI strings (current patterns are best-guess)
 
 ## Next (v0.1 — actually useful)
 
-- [ ] Count real usage signals, not page visits
-  - ChatGPT: detect when a message is sent (DOM mutation on send button or network)
-  - Claude: same
-- [ ] Daily breakdown (today / this week / this month)
-- [ ] Reset only one tool's counter, not all
+- [ ] Persist usage history (timeline of remaining-messages over time)
+- [ ] Notify when limit is reached or about to reset
+- [ ] Daily / weekly / monthly view
+- [ ] Add ChatGPT (harder, only catchable when limit hit)
 - [ ] Real icons (designed, not placeholder)
 
 ## Later (v0.2 — more tools)

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Tokenly",
-  "version": "0.0.2",
-  "description": "Track your AI usage across ChatGPT, Claude, and more, all in one place.",
+  "version": "0.0.3",
+  "description": "See your Claude.ai usage at a glance. More AI tools coming.",
   "action": {
     "default_popup": "src/popup.html",
     "default_title": "Tokenly"
@@ -10,14 +10,13 @@
   "background": {
     "service_worker": "src/background.js"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs"],
   "host_permissions": [
-    "https://chatgpt.com/*",
     "https://claude.ai/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://chatgpt.com/*", "https://claude.ai/*"],
+      "matches": ["https://claude.ai/*"],
       "js": ["src/content.js"],
       "run_at": "document_idle"
     }
