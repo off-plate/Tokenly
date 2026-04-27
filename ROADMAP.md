@@ -7,9 +7,12 @@ _Last updated: 2026-04-27_
 - [x] Manifest V3 scaffold
 - [x] Brand identity applied: 3-coin logo, slate/amber palette, Geist + Geist Mono typography
 - [x] Replace visit-counter stub with real Claude.ai usage scraper (DOM-based) — superseded
-- [x] Switch to API interception approach (v0.0.4): inject script monkey-patches fetch/XHR in page world, captures rate-limit responses
-- [ ] Identify the exact Claude API endpoint serving rate limits (use the popup's debug view to find it)
-- [ ] Once endpoint is known, refine the normalizer to map exact field names to UI
+- [x] Switch to API interception approach (v0.0.4) — superseded
+- [x] **v0.1.0 — service worker polls `/api/organizations/{id}/usage` every 60s with session cookies, displays 5-hour / 7-day / 7-day Opus remaining**
+- [ ] Verify it works on Michael's account
+- [ ] Add badge text on toolbar icon showing lowest remaining %
+- [ ] Add desktop notification when any window crosses a threshold (e.g. <10% remaining)
+- [ ] Add settings page: configurable poll interval, per-window thresholds
 
 ## Next (v0.1 — actually useful)
 

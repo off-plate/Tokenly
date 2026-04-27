@@ -14,14 +14,13 @@
 
 body {
   font-family: var(--tk-font);
-  width: 340px;
+  width: 320px;
   padding: 16px;
   background: var(--tk-ink);
   color: var(--tk-paper);
 }
 
 header { margin-bottom: 14px; }
-
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand .mark { display: block; }
 
@@ -50,16 +49,14 @@ h1 {
 
 .tool-name {
   font-family: var(--tk-font);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
   color: #cdd2d6;
   text-transform: uppercase;
 }
 
-.window {
-  margin-bottom: 14px;
-}
+.window { margin-bottom: 14px; }
 .window:last-child { margin-bottom: 0; }
 
 .row1 {
@@ -73,7 +70,6 @@ h1 {
   font-size: 13px;
   font-weight: 500;
   color: var(--tk-paper);
-  text-transform: capitalize;
 }
 .wpct {
   font-family: var(--tk-mono);
@@ -112,6 +108,14 @@ h1 {
   display: block;
 }
 
+.error {
+  margin-top: 8px;
+  font-family: var(--tk-font);
+  font-size: 10px;
+  color: #c97a4a;
+  line-height: 1.4;
+}
+
 .updated {
   font-family: var(--tk-mono);
   font-size: 9px;
@@ -125,23 +129,16 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin-top: 4px;
-  margin-bottom: 4px;
 }
 
-.link {
-  font-family: var(--tk-mono);
+.footnote {
+  font-family: var(--tk-font);
   font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: none;
-  border: none;
   color: var(--tk-mute);
-  cursor: pointer;
-  padding: 4px 0;
+  line-height: 1.4;
 }
-.link:hover { color: var(--tk-accent); }
 
 button.ghost {
   font-family: var(--tk-mono);
@@ -162,42 +159,7 @@ button.ghost:hover {
   color: var(--tk-accent);
   border-color: var(--tk-accent);
 }
-
-.debug {
-  display: none;
-  background: #15191c;
-  border: 1px solid #22282d;
-  border-radius: 8px;
-  padding: 10px;
-  margin-top: 6px;
-}
-.debug.open { display: block; }
-
-.debug-title {
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--tk-mute);
-  margin-bottom: 8px;
-}
-
-.endpoint {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  padding: 5px 0;
-  border-bottom: 1px solid #1d2226;
-}
-.endpoint:last-child { border-bottom: none; }
-.ep-url {
-  font-size: 10px;
-  color: #cdd2d6;
-  word-break: break-all;
-  flex: 1;
-}
-.ep-meta {
-  font-size: 9px;
-  color: var(--tk-mute);
-  white-space: nowrap;
+button.ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
