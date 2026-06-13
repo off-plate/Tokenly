@@ -15,18 +15,25 @@ const POLL_MIN = 1;
 const ORG_TTL_MS = 24 * 60 * 60 * 1000;
 const USAGE_TTL_MS = 30 * 1000;
 
+// poll() already persists any failure to storage, so a background poll that
+// rejects (e.g. OFFLINE) is expected, not a crash. Swallow the rejection here
+// to avoid "Uncaught (in promise)" noise in the service worker.
+function pollQuiet() {
+  poll().catch(() => {});
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create(ALARM, { periodInMinutes: POLL_MIN });
-  poll();
+  pollQuiet();
 });
 
 chrome.runtime.onStartup.addListener(() => {
   chrome.alarms.create(ALARM, { periodInMinutes: POLL_MIN });
-  poll();
+  pollQuiet();
 });
 
 chrome.alarms.onAlarm.addListener((a) => {
-  if (a.name === ALARM) poll();
+  if (a.name === ALARM) pollQuiet();
 });
 
 chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
@@ -41,11 +48,20 @@ chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
 // --- HTTP helpers ---
 
 async function fetchJson(url) {
-  const res = await fetch(url, {
-    method: "GET",
-    credentials: "include",
-    headers: { Accept: "application/json" },
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: { Accept: "application/json" },
+    });
+  } catch (_e) {
+    // Network-level failure (offline, claude.ai unreachable, DNS, sleep/wake).
+    // fetch() rejects with TypeError "Failed to fetch" here, not an HTTP status.
+    const e = new Error("OFFLINE");
+    e.code = "OFFLINE";
+    throw e;
+  }
   if (res.status === 401 || res.status === 403) {
     const e = new Error("NOT_LOGGED_IN");
     e.code = "NOT_LOGGED_IN";

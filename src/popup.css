@@ -93,6 +93,11 @@ h1 {
   margin-top: 5px;
   letter-spacing: 0.04em;
 }
+.wclock {
+  color: var(--tk-accent);
+  font-weight: 500;
+  font-feature-settings: "tnum" 1;
+}
 
 .bar {
   height: 8px;

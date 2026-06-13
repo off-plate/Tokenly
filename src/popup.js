@@ -24,6 +24,17 @@ function fmtUntil(iso) {
   return rh ? `${dDays}d ${rh}h` : `${dDays}d`;
 }
 
+function fmtClock(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const now = new Date();
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  if (d.toDateString() === now.toDateString()) return time;
+  const day = d.toLocaleDateString([], { weekday: "short" });
+  return `${day} ${time}`;
+}
+
 function colorFor(key) {
   if (key === "five_hour") return "var(--tk-accent)";
   if (key === "seven_day") return "var(--tk-primary-soft)";
@@ -41,6 +52,13 @@ function renderWindows(usage) {
     .map((w) => {
       const pct = typeof w.remainingPct === "number" ? w.remainingPct : null;
       const reset = fmtUntil(w.resetsAt);
+      const clock = fmtClock(w.resetsAt);
+      let resetLine = "&nbsp;";
+      if (clock) {
+        resetLine = `resets at <span class="wclock">${clock}</span>${reset ? ` · in ${reset}` : ""}`;
+      } else if (reset) {
+        resetLine = `resets in ${reset}`;
+      }
       return `
         <div class="window">
           <div class="row1">
@@ -48,7 +66,7 @@ function renderWindows(usage) {
             <span class="wpct mono">${pct !== null ? pct + "%" : "—"}</span>
           </div>
           <div class="bar"><span style="width:${pct ?? 0}%;background:${colorFor(w.key)}"></span></div>
-          <div class="row2 mono">${reset ? `resets in ${reset}` : "&nbsp;"}</div>
+          <div class="row2 mono">${resetLine}</div>
         </div>
       `;
     })
@@ -76,6 +94,8 @@ function renderState({ usage, error, lastOk, loading }) {
           chrome.tabs.create({ url: "https://claude.ai" });
         });
       }
+    } else if (error?.msg === "OFFLINE") {
+      empty.textContent = "Can't reach claude.ai. Check your connection and hit Refresh.";
     } else if (error) {
       empty.innerHTML = `Couldn't fetch usage. <span class="mono">${error.msg}</span>`;
     } else {
